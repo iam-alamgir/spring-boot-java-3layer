@@ -1,0 +1,122 @@
+spring:
+  application:
+    name: reactive-acl-template
+  threads:
+    virtual:
+      enabled: false
+  codec:
+    max-in-memory-size: 10MB
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/template_db
+    username: template_user
+    password: template_password
+  data:
+    redis:
+      cluster:
+        nodes:
+          - localhost:6379
+          - localhost:16379
+      password: redis_password
+      timeout: 2s
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    url: jdbc:postgresql://localhost:5432/template_db
+    user: template_user
+    password: template_password
+  jackson:
+    default-property-inclusion: non_null
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  opentelemetry:
+    resource-attributes:
+      service.name: ${spring.application.name}
+      service.namespace: sample-platform
+      deployment.environment: ${spring.profiles.active:dev}
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    logging:
+      endpoint: http://localhost:4318/v1/logs
+logging:
+  config: classpath:logback-spring.xml
+  structured:
+    format:
+      console: ecs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+app:
+  jwt:
+    issuer: reactive-acl-template
+    audience: reactive-acl-clients
+    secret: change-this-secret-key-to-at-least-32-bytes
+    access-token-ttl: PT15M
+    refresh-token-ttl: P7D
+  logging:
+    sensitive-fields:
+      - password
+      - token
+      - refreshToken
+      - accessToken
+      - ssn
+  resilience:
+    timeout: PT2S
+    retry-attempts: 3
+    rate-limit-for-period: 20
+    rate-limit-refresh-period: PT1S
+  cache:
+    acl-ttl: PT15M
+    token-ttl: P7D
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  r2dbc:
+    url: r2dbc:h2:mem:///template;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis_password
+  liquibase:
+    url: jdbc:h2:mem:template;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    user: sa
+    password:
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    logging:
+      endpoint: http://localhost:4318/v1/logs
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  r2dbc:
+    pool:
+      enabled: true
+      initial-size: 20
+      max-size: 100
+management:
+  endpoint:
+    health:
+      show-details: never

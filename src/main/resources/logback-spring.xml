@@ -1,0 +1,60 @@
+<configuration scan="true">
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
+    <property name="LOG_DIR" value="logs"/>
+
+    <appender name="APP_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/application-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <pattern>
+                    <pattern>{"app":"${APP_NAME}","level":"%level","logger":"%logger","traceId":"%X{trace_id}","spanId":"%X{span_id}","message":"%message"}</pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="BUSINESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/business.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/business-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%d %-5level [%X{trace_id}/%X{span_id}] %msg%n</pattern></encoder>
+    </appender>
+
+    <appender name="API_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/api.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/api-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%d %-5level [%X{trace_id}/%X{span_id}] %msg%n</pattern></encoder>
+    </appender>
+
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/audit-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%d %-5level [%X{trace_id}/%X{span_id}] %msg%n</pattern></encoder>
+    </appender>
+
+    <appender name="ASYNC_APP" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="APP_JSON"/></appender>
+    <appender name="ASYNC_BUSINESS" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="BUSINESS_FILE"/></appender>
+    <appender name="ASYNC_API" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="API_FILE"/></appender>
+    <appender name="ASYNC_AUDIT" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="AUDIT_FILE"/></appender>
+
+    <logger name="BUSINESS_LOG" level="INFO" additivity="false"><appender-ref ref="ASYNC_BUSINESS"/></logger>
+    <logger name="API_LOG" level="INFO" additivity="false"><appender-ref ref="ASYNC_API"/></logger>
+    <logger name="AUDIT_LOG" level="INFO" additivity="false"><appender-ref ref="ASYNC_AUDIT"/></logger>
+
+    <root level="INFO">
+        <appender-ref ref="ASYNC_APP"/>
+    </root>
+</configuration>

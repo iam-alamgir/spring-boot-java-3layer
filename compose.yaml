@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: template_db
+      POSTGRES_USER: template_user
+      POSTGRES_PASSWORD: template_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis-cluster:
+    image: bitnami/redis-cluster:7.4
+    environment:
+      REDIS_PASSWORD: redis_password
+      REDISCLI_AUTH: redis_password
+      REDIS_CLUSTER_REPLICAS: 0
+      ALLOW_EMPTY_PASSWORD: no
+      REDIS_NODES: redis-cluster redis-cluster redis-cluster redis-cluster redis-cluster redis-cluster
+      REDIS_CLUSTER_CREATOR: yes
+      REDIS_CLUSTER_DYNAMIC_IPS: no
+      REDIS_CLUSTER_ANNOUNCE_IP: redis-cluster
+    ports:
+      - "6379:6379"
+      - "16379:16379"
+    volumes:
+      - redis-data:/bitnami/redis/data
+
+  lgtm:
+    image: grafana/otel-lgtm:0.11.7
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - lgtm-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:
+  lgtm-data:

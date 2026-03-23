@@ -1,0 +1,176 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-initial-schema
+      author: codex
+      changes:
+        - createTable:
+            tableName: app_user
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: username, type: VARCHAR(100), constraints: { nullable: false, unique: true } }
+              - column: { name: password_hash, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: display_name, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: enabled, type: BOOLEAN, defaultValueBoolean: true, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - createTable:
+            tableName: refresh_token
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: token_hash, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: revoked, type: BOOLEAN, defaultValueBoolean: false, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - createTable:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: resource_type, type: VARCHAR(40), constraints: { nullable: false } }
+              - column: { name: resource_key, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: action, type: VARCHAR(40), constraints: { nullable: false } }
+              - column: { name: granted, type: BOOLEAN, defaultValueBoolean: true, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - createTable:
+            tableName: customer
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: external_ref, type: VARCHAR(40), constraints: { nullable: false, unique: true } }
+              - column: { name: full_name, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: email, type: VARCHAR(255), constraints: { nullable: false, unique: true } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - createTable:
+            tableName: processed_upload_record
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: uploaded_by, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: source_system, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: line_number, type: INT, constraints: { nullable: false } }
+              - column: { name: raw_line, type: VARCHAR(1000), constraints: { nullable: false } }
+              - column: { name: processed_name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: processed_email, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: refresh_token
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_refresh_token_user
+        - addForeignKeyConstraint:
+            baseTableName: acl_permission
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_acl_permission_user
+        - insert:
+            tableName: app_user
+            columns:
+              - column: { name: id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: username, value: 'admin' }
+              - column: { name: password_hash, value: '$2a$10$eImiTXuWVxfM37uY4JANjQ==replace-with-generated-bcrypt' }
+              - column: { name: display_name, value: 'Template Admin' }
+              - column: { name: enabled, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+              - column: { name: updated_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222221' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'CONTROLLER' }
+              - column: { name: resource_key, value: 'CustomerController' }
+              - column: { name: action, value: 'ACCESS' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222222' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'CUSTOMER_API' }
+              - column: { name: action, value: 'CREATE' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222223' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'CUSTOMER_API' }
+              - column: { name: action, value: 'READ' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222224' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'CONTROLLER' }
+              - column: { name: resource_key, value: 'AdminController' }
+              - column: { name: action, value: 'ACCESS' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222225' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'TOKEN_ADMIN_API' }
+              - column: { name: action, value: 'CLEAR_USER' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222226' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'TOKEN_ADMIN_API' }
+              - column: { name: action, value: 'CLEAR_ALL' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222227' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'ACL_ADMIN_API' }
+              - column: { name: action, value: 'REFRESH_USER' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222228' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'ACL_ADMIN_API' }
+              - column: { name: action, value: 'REFRESH_ALL' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222229' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'CONTROLLER' }
+              - column: { name: resource_key, value: 'UploadController' }
+              - column: { name: action, value: 'ACCESS' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
+        - insert:
+            tableName: acl_permission
+            columns:
+              - column: { name: id, value: '22222222-2222-2222-2222-222222222230' }
+              - column: { name: user_id, value: '11111111-1111-1111-1111-111111111111' }
+              - column: { name: resource_type, value: 'ENDPOINT' }
+              - column: { name: resource_key, value: 'UPLOAD_API' }
+              - column: { name: action, value: 'PROCESS' }
+              - column: { name: granted, valueBoolean: true }
+              - column: { name: created_at, valueDate: '2026-01-01T00:00:00Z' }
